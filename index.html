@@ -8,6 +8,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
+/* VOICE: herramienta de redacción, rápida y directa, como el estudio de VIVE.
+   IDEA: la historia misma es la pantalla; los controles son la mesa de armado.
+   PICTURE: la placa 9:16 en vivo, grande, arriba de todo.
+   COLOUR and TYPE: negro, blanco y rojo #FF0000 de VIVE; Poppins como el modelo.
+   LAYOUT: placa a la izquierda y controles a la derecha; en celular, placa arriba. */
 :root{color-scheme:dark;--bg:#0b0b0b;--panel:#161616;--line:#2a2a2a;--ink:#f4f4f4;--mute:#a3a3a3;--red:#ff0000}
 *{box-sizing:border-box;min-width:0}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Poppins,system-ui,sans-serif;overflow-x:clip}
@@ -16,7 +21,7 @@ header b{color:var(--red);font-weight:800;font-size:26px;letter-spacing:-.5px}
 header span{color:var(--mute);font-size:15px}
 main{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:clamp(20px,4vw,48px);padding:clamp(18px,3vw,36px) max(4vw,16px);max-width:1100px;margin:0 auto;align-items:start}
 .stage{position:sticky;top:16px}
-canvas#c{width:100%;aspect-ratio:9/16;display:block;border-radius:14px;background:#222;touch-action:none;cursor:grab;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+canvas#c{width:100%;aspect-ratio:9/16;display:block;border-radius:14px;background:repeating-conic-gradient(#3a3a3a 0 25%,#262626 0 50%) 0 0/28px 28px;touch-action:none;cursor:grab;box-shadow:0 20px 50px rgba(0,0,0,.5)}
 canvas#c.drag{cursor:grabbing}
 .hint{color:var(--mute);font-size:13px;margin:10px 2px 0;text-align:center}
 form{display:grid;gap:18px}
@@ -42,7 +47,7 @@ button{font:700 16px Poppins,sans-serif;border:0;border-radius:12px;min-height:4
 <main>
   <div class="stage">
     <canvas id="c" width="1080" height="1920" aria-label="Vista previa de la historia"></canvas>
-    <p class="hint">Tocá el título o la bajada para editarlos · Arrastrá la foto para acomodarla</p>
+    <p class="hint">Tocá el título o la bajada para editarlos · Sin foto, el fondo sale transparente para usar sobre video</p>
   </div>
   <form id="f">
     <label for="bajada">Bajada <small>En rojo, arriba del título</small>
@@ -56,7 +61,7 @@ button{font:700 16px Poppins,sans-serif;border:0;border-radius:12px;min-height:4
       <span id="fotoTxt">Subir foto</span>
     </label>
     <label>Zoom de la foto
-      <div class="row"><input type="range" id="zoom" min="1" max="3" step="0.01" value="1"><button type="button" class="ghost" id="reset">Centrar</button></div>
+      <div class="row"><input type="range" id="zoom" min="1" max="3" step="0.01" value="1"><button type="button" class="ghost" id="reset">Centrar</button><button type="button" class="ghost" id="quitar">Quitar foto</button></div>
     </label>
     <button type="submit" class="primary" id="bajar">Descargar PNG</button>
     <p id="msg" role="status"></p>
@@ -87,9 +92,8 @@ function wrap(text,font,maxW){
 }
 
 function drawPhoto(){
-  ctx.fillStyle='#d9d9d9';ctx.fillRect(0,0,W,H);
-  if(!st.img){ctx.fillStyle='#9a9a9a';ctx.font='600 46px Poppins';ctx.textAlign='center';
-    ctx.fillText('Subí una foto',W/2,620);ctx.textAlign='left';return}
+  ctx.clearRect(0,0,W,H);
+  if(!st.img)return;
   const i=st.img,base=Math.max(W/i.width,H/i.height),s=base*st.zoom;
   const w=i.width*s,h=i.height*s;
   const maxX=(w-W)/2,maxY=(h-H)/2;
@@ -101,22 +105,26 @@ function draw(){
   drawPhoto();
   const tituloTxt=$('titulo').value.toUpperCase().trim();
   const bajadaTxt=$('bajada').value.toUpperCase().trim();
+  // Título: se achica solo si pasa de 4 líneas
   let size=84,tl;
   do{tl=wrap(tituloTxt,`700 ${size}px Poppins`,MAXW);if(tl.length<=4)break;size-=4}while(size>56);
   const lh=size*0.99,lastBase=1548,firstBase=lastBase-(tl.length-1)*lh;
   const bsize=52,bl=wrap(bajadaTxt,`800 ${bsize}px Poppins`,MAXW).slice(0,2);
   const bLast=firstBase-size*0.72-36,bFirst=bLast-(bl.length-1)*58;
   const textTop=(bl.length?bFirst-bsize*0.75:firstBase-size*0.75);
+  // Degradé y franja negra
   const gStart=Math.min(930,textTop-420),gEnd=1580;
   const g=ctx.createLinearGradient(0,gStart,0,gEnd);
   g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(.45,'rgba(0,0,0,.55)');g.addColorStop(1,'rgba(0,0,0,1)');
   ctx.fillStyle=g;ctx.fillRect(0,gStart,W,gEnd-gStart);
   ctx.fillStyle='#000';ctx.fillRect(0,gEnd,W,H-gEnd);
+  // Textos
   ctx.textBaseline='alphabetic';ctx.textAlign='left';
   ctx.fillStyle=RED;ctx.font=`800 ${bsize}px Poppins`;
   bl.forEach((l,k)=>ctx.fillText(l,X,bFirst+k*58,MAXW+60));
   ctx.fillStyle='#fff';ctx.font=`700 ${size}px Poppins`;
   tl.forEach((l,k)=>ctx.fillText(l,X,firstBase+k*lh,MAXW+60));
+  // Logo VIVE oficial
   if(logo.complete&&logo.naturalWidth){const lw=126,lhh=lw*logo.naturalHeight/logo.naturalWidth;ctx.drawImage(logo,W/2-lw/2,1658-lhh,lw,lhh)}
   zonas={bajada:[bFirst-bsize,bLast+12],titulo:[firstBase-size,lastBase+20]};
 }
@@ -128,10 +136,12 @@ function loadFile(file){
   im.src=url;
 }
 $('foto').addEventListener('change',e=>loadFile(e.target.files[0]));
+const drop=$('drop');
 ['dragover','drop'].forEach(ev=>document.addEventListener(ev,e=>{e.preventDefault();if(ev==='drop')loadFile(e.dataTransfer.files[0])}));
 $('zoom').addEventListener('input',e=>{st.zoom=+e.target.value;draw()});
 $('reset').addEventListener('click',()=>{st.zoom=1;st.ox=st.oy=0;$('zoom').value=1;draw()});
 ['titulo','bajada'].forEach(id=>$(id).addEventListener('input',draw));
+$('quitar').addEventListener('click',()=>{st.img=null;$('foto').value='';$('fotoTxt').textContent='Subir foto';draw()});
 
 let drag=null;
 function zonaDe(e){const r=c.getBoundingClientRect(),y=(e.clientY-r.top)*H/r.height;
@@ -153,16 +163,16 @@ function showFallback(blob){
 }
 $('f').addEventListener('submit',e=>{
   e.preventDefault();draw();
-  c.toBlob(blob=>{
+  c.toBlob(async blob=>{
     if(!blob){$('msg').textContent='No se pudo generar la imagen.';return}
     const url=URL.createObjectURL(blob),a=document.createElement('a');
     a.href=url;a.download=nombre();document.body.appendChild(a);a.click();a.remove();
-    $('msg').textContent='Listo, PNG descargado. Si no se bajó, guardalo desde la imagen de abajo.';showFallback(blob);
+    $('msg').textContent='Listo, PNG descargado. Si no se bajó, guardalo desde la imagen de abajo.';showFallback(blob);return;
   },'image/png');
 });
 
 draw();
-if(document.fonts){Promise.all(['700 84px Poppins','800 60px Poppins','600 46px Poppins'].map(f=>document.fonts.load(f))).then(draw).catch(()=>{});document.fonts.ready.then(draw)}
+if(document.fonts){Promise.all(['700 84px Poppins','800 60px Poppins'].map(f=>document.fonts.load(f))).then(draw).catch(()=>{});document.fonts.ready.then(draw)}
 }
 </script>
 </body>
