@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Placas VIVE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#0b0b0b;--panel:#161616;--line:#2a2a2a;--ink:#f4f4f4;--mute:#a3a3a3;--red:#ff0000}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Poppins,system-ui,sans-serif;overflow-x:clip}
+header{display:flex;align-items:center;gap:12px;padding:18px max(4vw,16px);border-bottom:1px solid var(--line)}
+header b{color:var(--red);font-weight:800;font-size:26px;letter-spacing:-.5px}
+header span{color:var(--mute);font-size:15px}
+main{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:clamp(20px,4vw,48px);padding:clamp(18px,3vw,36px) max(4vw,16px);max-width:1100px;margin:0 auto;align-items:start}
+.stage{position:sticky;top:16px}
+canvas#c{width:100%;aspect-ratio:9/16;display:block;border-radius:14px;background:#222;touch-action:none;cursor:grab;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+canvas#c.drag{cursor:grabbing}
+.hint{color:var(--mute);font-size:13px;margin:10px 2px 0;text-align:center}
+form{display:grid;gap:18px}
+label{display:grid;gap:6px;font-weight:700;font-size:15px}
+label small{font-weight:500;color:var(--mute);font-size:13px}
+textarea,input[type=text]{font:500 16px/1.4 Poppins,sans-serif;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;resize:vertical;text-transform:uppercase}
+textarea:focus,input:focus,button:focus-visible,.file:focus-within{outline:2px solid var(--red);outline-offset:2px}
+.file{display:flex;align-items:center;justify-content:center;gap:10px;min-height:56px;border:2px dashed #3a3a3a;border-radius:12px;background:var(--panel);font-weight:700;cursor:pointer;text-align:center;padding:10px}
+.file input{position:absolute;opacity:0;width:1px;height:1px}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+input[type=range]{flex:1;accent-color:var(--red);height:44px}
+button{font:700 16px Poppins,sans-serif;border:0;border-radius:12px;min-height:48px;padding:0 20px;cursor:pointer}
+.primary{background:var(--red);color:#fff;font-size:18px;min-height:58px;width:100%}
+.ghost{background:var(--panel);color:var(--ink);border:1px solid var(--line)}
+#msg{min-height:22px;font-size:14px;color:var(--mute);margin:0}
+#fallback{display:none;gap:8px}
+#fallback img{width:100%;max-width:300px;border-radius:10px}
+@media(max-width:760px){main{grid-template-columns:minmax(0,1fr)}.stage{position:static;max-width:360px;margin:0 auto;width:100%}}
+</style>
+</head>
+<body>
+<header><b>VIVE</b><span>Generador de historias</span></header>
+<main>
+  <div class="stage">
+    <canvas id="c" width="1080" height="1920" aria-label="Vista previa de la historia"></canvas>
+    <p class="hint">Tocá el título o la bajada para editarlos · Arrastrá la foto para acomodarla</p>
+  </div>
+  <form id="f">
+    <label for="bajada">Bajada <small>En rojo, arriba del título</small>
+      <input type="text" id="bajada" value="Hinchas de Boca en Colombia" maxlength="80">
+    </label>
+    <label for="titulo">Título <small>En blanco. Con Enter cortás la línea donde quieras</small>
+      <textarea id="titulo" rows="3" maxlength="140">Abrieron un telón en el avión de Boca</textarea>
+    </label>
+    <label class="file" id="drop">
+      <input type="file" id="foto" accept="image/*">
+      <span id="fotoTxt">Subir foto</span>
+    </label>
+    <label>Zoom de la foto
+      <div class="row"><input type="range" id="zoom" min="1" max="3" step="0.01" value="1"><button type="button" class="ghost" id="reset">Centrar</button></div>
+    </label>
+    <button type="submit" class="primary" id="bajar">Descargar PNG</button>
+    <p id="msg" role="status"></p>
+    <div id="fallback">
+      <p class="hint" style="text-align:left;margin:0">Mantené apretada la imagen (o clic derecho) y elegí “Guardar imagen”.</p>
+      <img id="out" alt="Historia lista para guardar">
+    </div>
+  </form>
+</main>
+<script>
+{
+const W=1080,H=1920,RED='#FF0000',X=110,MAXW=860;
+const c=document.getElementById('c'),ctx=c.getContext('2d');
+const $=id=>document.getElementById(id);
+const st={img:null,zoom:1,ox:0,oy:0};
+let zonas={bajada:[0,0],titulo:[0,0]};
+const logo=new Image();logo.onload=()=>draw();logo.src='data:image/png;base64,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
