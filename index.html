@@ -39,6 +39,16 @@ button{font:700 16px Poppins,sans-serif;border:0;border-radius:12px;min-height:4
 #msg{min-height:22px;font-size:14px;color:var(--mute);margin:0}
 #fallback{display:none;gap:8px}
 #fallback img{width:100%;max-width:300px;border-radius:10px}
+details.guia{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:4px 18px}
+details.guia summary{cursor:pointer;font-weight:800;font-size:18px;padding:14px 0;list-style:none}
+details.guia summary::after{content:' +';color:var(--red)}
+details.guia[open] summary::after{content:' –'}
+.guia p{font-size:17px;margin:0 0 14px}
+.guia ol{padding:0;margin:0 0 16px;list-style:none;counter-reset:p;display:grid;gap:14px}
+.guia li{counter-increment:p;display:grid;grid-template-columns:40px minmax(0,1fr);gap:12px;font-size:17px;line-height:1.5}
+.guia li::before{content:counter(p);width:40px;height:40px;border-radius:50%;background:var(--red);color:#fff;font-weight:800;display:grid;place-items:center;font-size:18px}
+.guia .ojo{background:#241010;border-left:4px solid var(--red);padding:12px 14px;border-radius:8px}
+.guia h3{font-size:18px;margin:6px 0 8px}
 @media(max-width:760px){main{grid-template-columns:minmax(0,1fr)}.stage{position:static;max-width:360px;margin:0 auto;width:100%}}
 </style>
 </head>
@@ -69,6 +79,22 @@ button{font:700 16px Poppins,sans-serif;border:0;border-radius:12px;min-height:4
       <p class="hint" style="text-align:left;margin:0">Mantené apretada la imagen (o clic derecho) y elegí “Guardar imagen”.</p>
       <img id="out" alt="Historia lista para guardar">
     </div>
+    <details class="guia">
+      <summary>¿Cómo pongo la placa arriba de un video en Instagram?</summary>
+      <p>Es fácil, son pocos pasos. Antes de empezar, tené el video ya guardado en tu celular.</p>
+      <ol>
+        <li><span><b>Escribí la bajada y el título</b> en los casilleros de arriba. <b>No subas ninguna foto.</b> Así la placa queda con el fondo transparente y después se ve el video por detrás.</span></li>
+        <li><span>Tocá el botón rojo <b>“Descargar PNG”</b>. La placa se guarda en tu celular, junto con tus fotos.<br>Si no se guarda sola: abajo del botón aparece la placa. <b>Dejá el dedo apretado sobre ella</b> unos segundos y tocá <b>“Guardar imagen”</b>.</span></li>
+        <li><span>Abrí <b>Instagram</b> y tocá tu <b>foto de perfil con el signo +</b>, arriba a la izquierda. Es para hacer una historia.</span></li>
+        <li><span>Elegí <b>el video</b> de tu galería.</span></li>
+        <li><span>Arriba de la pantalla, tocá el <b>cuadradito con una carita sonriente</b>. Son los stickers.</span></li>
+        <li><span>Buscá el sticker que tiene el <b>dibujo de una foto</b> (dice “Foto”) y tocalo. Se abren tus fotos: <b>elegí la placa</b> que descargaste.</span></li>
+        <li><span>La placa aparece chiquita arriba del video. <b>Poné dos dedos sobre la placa y separalos</b> para agrandarla, hasta que ocupe <b>toda la pantalla</b>. Arrastrala con un dedo para centrarla.</span></li>
+        <li><span>Si la placa quedó con las puntas redondeadas o en forma de círculo, <b>tocala una vez</b> (o varias) hasta que quede rectangular, como la descargaste.</span></li>
+        <li><span>Listo: tocá <b>“Tu historia”</b> abajo para publicarla.</span></li>
+      </ol>
+      <p class="ojo"><b>Para un reel</b> es igual: elegí el video, tocá la carita de stickers, después el sticker <b>Foto</b>, y seguí desde el paso 6.</p>
+    </details>
   </form>
 </main>
 <script>
